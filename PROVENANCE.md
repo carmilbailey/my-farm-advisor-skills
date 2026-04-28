@@ -51,3 +51,32 @@ Use the template below for each import. Keep every field present. If a field doe
 3. Re-copy only the intended `source_path` into `destination_path`.
 4. Re-apply any `local_modifications` intentionally kept in this repo.
 5. Update the provenance record, manifest entry, and related QA evidence in the same commit.
+
+## my-farm-breeding-trial-management
+- source_repo: https://github.com/borealBytes/my-farm-advisor.git
+- source_local_path: /media/clay/Data/dev/scientific-agent-skills-worktrees/scientific-agent-skills-breeding-trial-management
+- source_ref: feat/breeding-trial-management
+- source_commit: f479f5d2d494d12c8b60fbdc338bf1219dd5a0d1
+- source_status: untracked worktree: scientific-skills/breeding-trial-management/
+- source_path: scientific-skills/breeding-trial-management/
+- destination_path: my-farm-breeding-trial-management/
+- import_date: 2026-04-28
+- remote_baseline_ref: main
+- remote_baseline_commit: 4a82ab779e8374035ca5e15f1cb1c0571395dc3d
+- remote_baseline_path: skills/my-farm-breeding-trial-management/
+- exclusions: `.git/`; any unrelated scientific skills outside `scientific-skills/breeding-trial-management/`; remote flat-layout paths that would overwrite the grouped local example taxonomy
+- local_modifications: Copied the local untracked skill tree as the structural base; added root `README.md` from the remote skill with grouped-path adjustments; backfilled remote-only `scripts/breeding_cli.py` and `examples/field-trial-placement/`; merged remote unified-CLI/tool-selection documentation into local `SKILL.md` while preserving local grouped examples and local `references/bms-api.md` + `references/breedbase-api.md`.
+- update_procedure: Re-run `git branch --show-current`, `git rev-parse HEAD`, and `git status --short` in `/media/clay/Data/dev/scientific-agent-skills-worktrees/scientific-agent-skills-breeding-trial-management`; copy only `scientific-skills/breeding-trial-management/` into `my-farm-breeding-trial-management/`; resolve `https://github.com/borealBytes/my-farm-advisor.git` `main` to a commit SHA; then re-apply the remote completeness backfill for `README.md`, `scripts/breeding_cli.py`, and `examples/field-trial-placement/` without replacing the grouped local taxonomy or adjusted reference files.
+
+## my-farm-advisor
+- source_repo: https://github.com/borealBytes/my-farm-advisor.git
+- source_local_path: N/A
+- source_ref: main
+- source_commit: 4a82ab779e8374035ca5e15f1cb1c0571395dc3d
+- source_status: clean remote ref
+- source_path: skills/my-farm-advisor/
+- destination_path: my-farm-advisor/
+- import_date: 2026-04-28
+- exclusions: `.git/`; `r2-seed-pipeline/src/shared/geoadmin/l0_countries/countries.geojson`; `r2-seed-pipeline/src/shared/geoadmin/l1_states/states_usa.geojson`; generated maturity report/table artifacts under `r2-seed-pipeline/src/shared/*/{reports,tables}/`; any repo-local CI or deployment files outside `skills/my-farm-advisor/`
+- local_modifications: Imported `skills/my-farm-advisor/` into `my-farm-advisor/` and intentionally omitted the two generated geoadmin GeoJSON payloads plus generated maturity report/table artifacts while preserving metadata JSON files plus `download_geoadmin.py`, `farm_dashboard.py`, `run_farm_pipeline.py`, and `run_maturity_by_fips.py`.
+- update_procedure: Run `git ls-remote https://github.com/borealBytes/my-farm-advisor.git refs/heads/main`, confirm the SHA, clone or fetch the repo, copy only `skills/my-farm-advisor/` into `my-farm-advisor/`, exclude `r2-seed-pipeline/src/shared/geoadmin/l0_countries/countries.geojson`, `r2-seed-pipeline/src/shared/geoadmin/l1_states/states_usa.geojson`, and generated maturity report/table artifacts under `r2-seed-pipeline/src/shared/*/{reports,tables}/`, rerun `./scripts/validate.sh`, and refresh the QA evidence plus provenance fields in the same commit.

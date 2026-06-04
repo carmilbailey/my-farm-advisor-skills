@@ -1,14 +1,16 @@
 #!/usr/bin/env python3
+# pyright: reportCallIssue=false, reportOperatorIssue=false
 """
 09_eda_field_cards.py - Per-field poster cards
 
 Creates individual poster cards for each field showing comprehensive agronomic data.
 
 Input:  All downloaded data
-Output: data/my-farm-advisor/growers/iowa-demo-grower/farms/iowa-demo-farm/fields/.../derived/reports/iowa_field_card_01.png through iowa_field_card_10.png
+Output: farm report cards under the configured runtime root.
 """
 
-import os
+import sys
+from pathlib import Path
 
 import geopandas as gpd
 import matplotlib
@@ -18,27 +20,38 @@ import pandas as pd
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
+_SCRIPTS_DIR = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(_SCRIPTS_DIR / "lib"))
+
+from lib.paths import (  # noqa: E402
+    farm_boundary_path,
+    farm_reports_dir,
+    farm_table_path,
+    farm_weather_path,
+    shared_cdl_year_table_path,
+)
+
+_DEFAULT_GROWER = "iowa-demo-grower"
+_DEFAULT_FARM = "iowa-demo-farm"
+
 
 def main():
     print("=" * 60)
     print("Step 9: Per-Field Poster Cards")
     print("=" * 60)
 
-    os.makedirs("data/my-farm-advisor/growers/iowa-demo-grower/farms/iowa-demo-farm/derived/reports", exist_ok=True)
+    reports_dir = farm_reports_dir(_DEFAULT_GROWER, _DEFAULT_FARM)
+    reports_dir.mkdir(parents=True, exist_ok=True)
 
     # Load all data
-    fields = gpd.read_file(
-        "data/my-farm-advisor/growers/iowa-demo-grower/farms/iowa-demo-farm/boundary/field_boundaries.geojson"
-    )
-    soil = pd.read_csv(
-        "data/my-farm-advisor/growers/iowa-demo-grower/farms/iowa-demo-farm/derived/tables/iowa_10_fields_soil.csv"
-    )
+    fields = gpd.read_file(farm_boundary_path(_DEFAULT_GROWER, _DEFAULT_FARM))
+    soil = pd.read_csv(farm_table_path(_DEFAULT_GROWER, _DEFAULT_FARM, "iowa_10_fields_soil.csv"))
     weather = pd.read_csv(
-        "data/my-farm-advisor/growers/iowa-demo-grower/farms/iowa-demo-farm/derived/tables/iowa_weather_2021_2025.csv",
+        farm_weather_path(_DEFAULT_GROWER, _DEFAULT_FARM),
         parse_dates=["date"],
     )
-    cdl_2023 = pd.read_csv("data/my-farm-advisor/shared/cdl/derived/tables/iowa_2023_cdl.csv")
-    cdl_2024 = pd.read_csv("data/my-farm-advisor/shared/cdl/derived/tables/iowa_2024_cdl.csv")
+    cdl_2023 = pd.read_csv(shared_cdl_year_table_path(2023))
+    cdl_2024 = pd.read_csv(shared_cdl_year_table_path(2024))
 
     # Get dominant soil per field
     dominant_soil = (
@@ -276,18 +289,13 @@ def main():
 
         # Save card
         card_num = idx + 1
-        plt.savefig(
-            f"data/my-farm-advisor/growers/iowa-demo-grower/farms/iowa-demo-farm/derived/reports/iowa_field_card_{card_num:02d}.png",
-            dpi=150,
-            bbox_inches="tight",
-        )
+        card_path = reports_dir / f"iowa_field_card_{card_num:02d}.png"
+        plt.savefig(card_path, dpi=150, bbox_inches="tight")
         plt.close()
 
         print(f"✓ Card {card_num}/10: {field['field_id'][-6:]}")
 
-    print(
-        "\n✓ All 10 field cards saved to: data/my-farm-advisor/growers/iowa-demo-grower/farms/iowa-demo-farm/derived/reports/"
-    )
+    print(f"\n✓ All 10 field cards saved to: {reports_dir}/")
 
     return field_data
 

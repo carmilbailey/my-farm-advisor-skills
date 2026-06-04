@@ -1,18 +1,16 @@
 #!/usr/bin/env python3
+# pyright: reportCallIssue=false
 """
 08_eda_correlations.py - Correlation analysis
 
 Creates correlation matrix and XY plots for soil properties.
 
-Input:  data/my-farm-advisor/growers/iowa-demo-grower/farms/iowa-demo-farm/boundary/field_boundaries.geojson
-data/my-farm-advisor/growers/iowa-demo-grower/farms/iowa-demo-farm/derived/tables/iowa_10_fields_soil.csv
-data/my-farm-advisor/growers/iowa-demo-grower/farms/iowa-demo-farm/derived/tables/iowa_weather_2021_2025.csv
-Output: data/my-farm-advisor/growers/iowa-demo-grower/farms/iowa-demo-farm/derived/summaries/iowa_correlation_matrix.csv
-data/my-farm-advisor/growers/iowa-demo-grower/farms/iowa-demo-farm/derived/reports/iowa_correlation_heatmap.png
-data/my-farm-advisor/growers/iowa-demo-grower/farms/iowa-demo-farm/derived/reports/iowa_xy_plots.png
+Input:  canonical farm boundary, soil table, and weather table under the runtime root.
+Output: farm correlation matrix and plots under the runtime root.
 """
 
-import os
+import sys
+from pathlib import Path
 
 import geopandas as gpd
 import matplotlib
@@ -22,25 +20,35 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import seaborn as sns
 
+_SCRIPTS_DIR = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(_SCRIPTS_DIR / "lib"))
+
+from lib.paths import (  # noqa: E402
+    farm_boundary_path,
+    farm_reports_dir,
+    farm_summaries_dir,
+    farm_table_path,
+    farm_weather_path,
+)
+
+_DEFAULT_GROWER = "iowa-demo-grower"
+_DEFAULT_FARM = "iowa-demo-farm"
+
 
 def main():
     print("=" * 60)
     print("Step 8: Correlation Analysis")
     print("=" * 60)
 
-    os.makedirs("data/my-farm-advisor/growers/iowa-demo-grower/farms/iowa-demo-farm/derived/reports", exist_ok=True)
-    os.makedirs(
-        "data/my-farm-advisor/growers/iowa-demo-grower/farms/iowa-demo-farm/derived/summaries", exist_ok=True
-    )
+    reports_dir = farm_reports_dir(_DEFAULT_GROWER, _DEFAULT_FARM)
+    summaries_dir = farm_summaries_dir(_DEFAULT_GROWER, _DEFAULT_FARM)
+    reports_dir.mkdir(parents=True, exist_ok=True)
+    summaries_dir.mkdir(parents=True, exist_ok=True)
 
-    fields = gpd.read_file(
-        "data/my-farm-advisor/growers/iowa-demo-grower/farms/iowa-demo-farm/boundary/field_boundaries.geojson"
-    )
-    soil = pd.read_csv(
-        "data/my-farm-advisor/growers/iowa-demo-grower/farms/iowa-demo-farm/derived/tables/iowa_10_fields_soil.csv"
-    )
+    fields = gpd.read_file(farm_boundary_path(_DEFAULT_GROWER, _DEFAULT_FARM))
+    soil = pd.read_csv(farm_table_path(_DEFAULT_GROWER, _DEFAULT_FARM, "iowa_10_fields_soil.csv"))
     weather = pd.read_csv(
-        "data/my-farm-advisor/growers/iowa-demo-grower/farms/iowa-demo-farm/derived/tables/iowa_weather_2021_2025.csv",
+        farm_weather_path(_DEFAULT_GROWER, _DEFAULT_FARM),
         parse_dates=["date"],
     )
 
@@ -104,23 +112,15 @@ def main():
     )
 
     plt.tight_layout()
-    plt.savefig(
-        "data/my-farm-advisor/growers/iowa-demo-grower/farms/iowa-demo-farm/derived/reports/iowa_correlation_heatmap.png",
-        dpi=150,
-        bbox_inches="tight",
-    )
+    heatmap_path = reports_dir / "iowa_correlation_heatmap.png"
+    plt.savefig(heatmap_path, dpi=150, bbox_inches="tight")
     plt.close()
-    print(
-        "✓ Saved: data/my-farm-advisor/growers/iowa-demo-grower/farms/iowa-demo-farm/derived/reports/iowa_correlation_heatmap.png"
-    )
+    print(f"✓ Saved: {heatmap_path}")
 
     # Save correlation matrix
-    corr_matrix.to_csv(
-        "data/my-farm-advisor/growers/iowa-demo-grower/farms/iowa-demo-farm/derived/summaries/iowa_correlation_matrix.csv"
-    )
-    print(
-        "✓ Saved: data/my-farm-advisor/growers/iowa-demo-grower/farms/iowa-demo-farm/derived/summaries/iowa_correlation_matrix.csv"
-    )
+    correlation_matrix_path = summaries_dir / "iowa_correlation_matrix.csv"
+    corr_matrix.to_csv(correlation_matrix_path)
+    print(f"✓ Saved: {correlation_matrix_path}")
 
     # ===============================
     # Plot 2: Key XY Plots
@@ -181,15 +181,10 @@ def main():
 
     plt.suptitle("XY Plots: Soil & Weather Relationships", fontsize=14, fontweight="bold", y=1.02)
     plt.tight_layout()
-    plt.savefig(
-        "data/my-farm-advisor/growers/iowa-demo-grower/farms/iowa-demo-farm/derived/reports/iowa_xy_plots.png",
-        dpi=150,
-        bbox_inches="tight",
-    )
+    xy_plots_path = reports_dir / "iowa_xy_plots.png"
+    plt.savefig(xy_plots_path, dpi=150, bbox_inches="tight")
     plt.close()
-    print(
-        "✓ Saved: data/my-farm-advisor/growers/iowa-demo-grower/farms/iowa-demo-farm/derived/reports/iowa_xy_plots.png"
-    )
+    print(f"✓ Saved: {xy_plots_path}")
 
     print("\n✓ Correlation analysis complete")
     print("\nKey Correlations:")

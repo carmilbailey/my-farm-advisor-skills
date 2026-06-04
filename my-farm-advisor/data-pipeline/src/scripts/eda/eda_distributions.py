@@ -4,13 +4,12 @@
 
 Creates histograms, bar charts, and distribution plots for soil and crop data.
 
-Input:  data/my-farm-advisor/growers/iowa-demo-grower/farms/iowa-demo-farm/derived/tables/iowa_10_fields_soil.csv
-data/my-farm-advisor/shared/cdl/derived/tables/iowa_2023_cdl.csv, data/my-farm-advisor/shared/cdl/derived/tables/iowa_2024_cdl.csv
-Output: data/my-farm-advisor/growers/iowa-demo-grower/farms/iowa-demo-farm/derived/reports/iowa_soil_distributions.png
-data/my-farm-advisor/growers/iowa-demo-grower/farms/iowa-demo-farm/derived/reports/iowa_cdl_distributions.png
+Input:  canonical farm soil table and shared CDL tables under the runtime root.
+Output: farm soil and CDL distribution plots under the runtime root.
 """
 
-import os
+import sys
+from pathlib import Path
 
 import matplotlib
 import pandas as pd
@@ -18,19 +17,30 @@ import pandas as pd
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
+_SCRIPTS_DIR = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(_SCRIPTS_DIR / "lib"))
+
+from lib.paths import (  # noqa: E402
+    farm_reports_dir,
+    farm_table_path,
+    shared_cdl_year_table_path,
+)
+
+_DEFAULT_GROWER = "iowa-demo-grower"
+_DEFAULT_FARM = "iowa-demo-farm"
+
 
 def main():
     print("=" * 60)
     print("Step 7: Distribution Analysis")
     print("=" * 60)
 
-    os.makedirs("data/my-farm-advisor/growers/iowa-demo-grower/farms/iowa-demo-farm/derived/reports", exist_ok=True)
+    reports_dir = farm_reports_dir(_DEFAULT_GROWER, _DEFAULT_FARM)
+    reports_dir.mkdir(parents=True, exist_ok=True)
 
-    soil = pd.read_csv(
-        "data/my-farm-advisor/growers/iowa-demo-grower/farms/iowa-demo-farm/derived/tables/iowa_10_fields_soil.csv"
-    )
-    cdl_2023 = pd.read_csv("data/my-farm-advisor/shared/cdl/derived/tables/iowa_2023_cdl.csv")
-    cdl_2024 = pd.read_csv("data/my-farm-advisor/shared/cdl/derived/tables/iowa_2024_cdl.csv")
+    soil = pd.read_csv(farm_table_path(_DEFAULT_GROWER, _DEFAULT_FARM, "iowa_10_fields_soil.csv"))
+    cdl_2023 = pd.read_csv(shared_cdl_year_table_path(2023))
+    cdl_2024 = pd.read_csv(shared_cdl_year_table_path(2024))
 
     # ===============================
     # Plot 1: Soil Property Distributions
@@ -108,15 +118,10 @@ def main():
         "Soil Property Distributions Across All Fields", fontsize=14, fontweight="bold", y=1.02
     )
     plt.tight_layout()
-    plt.savefig(
-        "data/my-farm-advisor/growers/iowa-demo-grower/farms/iowa-demo-farm/derived/reports/iowa_soil_distributions.png",
-        dpi=150,
-        bbox_inches="tight",
-    )
+    soil_distributions_path = reports_dir / "iowa_soil_distributions.png"
+    plt.savefig(soil_distributions_path, dpi=150, bbox_inches="tight")
     plt.close()
-    print(
-        "✓ Saved: data/my-farm-advisor/growers/iowa-demo-grower/farms/iowa-demo-farm/derived/reports/iowa_soil_distributions.png"
-    )
+    print(f"✓ Saved: {soil_distributions_path}")
 
     # ===============================
     # Plot 2: CDL Crop Distributions
@@ -152,15 +157,10 @@ def main():
     ax.tick_params(axis="x", rotation=45)
 
     plt.tight_layout()
-    plt.savefig(
-        "data/my-farm-advisor/growers/iowa-demo-grower/farms/iowa-demo-farm/derived/reports/iowa_cdl_distributions.png",
-        dpi=150,
-        bbox_inches="tight",
-    )
+    cdl_distributions_path = reports_dir / "iowa_cdl_distributions.png"
+    plt.savefig(cdl_distributions_path, dpi=150, bbox_inches="tight")
     plt.close()
-    print(
-        "✓ Saved: data/my-farm-advisor/growers/iowa-demo-grower/farms/iowa-demo-farm/derived/reports/iowa_cdl_distributions.png"
-    )
+    print(f"✓ Saved: {cdl_distributions_path}")
 
     print("\n✓ Distribution analysis complete")
 

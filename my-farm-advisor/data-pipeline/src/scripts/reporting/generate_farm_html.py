@@ -20,29 +20,26 @@ import pandas as pd
 
 matplotlib.use("Agg")
 
-_REPO = Path(__file__).resolve().parents[4]
-_LIB = _REPO / "data" / "my-farm-advisor" / "scripts" / "lib"
+_LOCAL_LIB = Path(__file__).resolve().parents[1] / "lib"
+sys.path.insert(0, str(_LOCAL_LIB))
 
+from runtime_paths import resolve_runtime_paths  # noqa: E402
 
-def _ensure_skill_path(skill_name: str) -> Path:
-    matches = sorted(
-        (_REPO / "skills" / "my-farm-advisor").glob(f"**/{skill_name}/src")
-    )
-    if not matches:
-        raise FileNotFoundError(f"Skill source path not found for '{skill_name}'")
-    skill_path = matches[0]
-    skill_path_str = str(skill_path)
-    if skill_path_str not in sys.path:
-        sys.path.insert(0, skill_path_str)
-    return skill_path
-
-
-_FARM_INTEL_SKILL = _ensure_skill_path("farm-intelligence-reporting")
-_HEADLANDS_SKILL = _ensure_skill_path("headlands-ring")
-_CDL_SKILL = _ensure_skill_path("cdl-cropland")
-_CROP_STRATEGY_SKILL = _ensure_skill_path("crop-strategy")
-_WEATHER_SKILL = _ensure_skill_path("nasa-power-weather")
+_RUNTIME_PATHS = resolve_runtime_paths()
+_REPO = _RUNTIME_PATHS.runtime_base
+_SCRIPTS = _RUNTIME_PATHS.runtime_scripts
+_LIB = _RUNTIME_PATHS.runtime_scripts / "lib"
+sys.path.insert(0, str(_SCRIPTS))
 sys.path.insert(0, str(_LIB))
+
+from reporting_bootstrap import ensure_skill_path  # noqa: E402
+
+
+_FARM_INTEL_SKILL = ensure_skill_path("farm-intelligence-reporting")
+_HEADLANDS_SKILL = ensure_skill_path("headlands-ring")
+_CDL_SKILL = ensure_skill_path("cdl-cropland")
+_CROP_STRATEGY_SKILL = ensure_skill_path("crop-strategy")
+_WEATHER_SKILL = ensure_skill_path("nasa-power-weather")
 
 from cdl_reporting import plot_crop_mix_stacked_100, summarize_crop_history
 from crop_strategy import generate_farm_recommendations, generate_field_recommendations
@@ -55,10 +52,12 @@ from paths import (
     farm_ssurgo_summary_path,
     farm_summary_path,
     farm_weather_path,
+    field_dir,
     field_feature_path,
     field_report_path,
     field_summary_path,
     shared_cdl_preferred_full_composition_path,
+    shared_geoadmin_dir,
 )
 from pipeline import (
     STEP_FARM_HTML_RENDER,
@@ -83,10 +82,8 @@ _SCRIPT = Path(__file__)
 _DEFAULT_GROWER = os.environ.get("AG_GROWER_SLUG", "iowa-demo-grower")
 _DEFAULT_FARM = os.environ.get("AG_FARM_SLUG", "iowa-demo-farm")
 _DEFAULT_FARM_NAME = os.environ.get("AG_FARM_NAME", "Iowa Demo Farm")
-_FIELD_INVENTORY = _REPO / os.environ.get(
-    "AG_INVENTORY_CSV",
-    "data/my-farm-advisor/growers/iowa-demo-grower/farms/iowa-demo-farm/manifests/field-inventory.csv",
-)
+_DEFAULT_INVENTORY = _REPO / "growers" / _DEFAULT_GROWER / "farms" / _DEFAULT_FARM / "manifests" / "field-inventory.csv"
+_FIELD_INVENTORY = Path(os.environ.get("AG_INVENTORY_CSV", str(_DEFAULT_INVENTORY)))
 _CDL_PRIMARY = farm_cdl_preferred_full_composition_path(_DEFAULT_GROWER, _DEFAULT_FARM)
 _CDL_FALLBACK = shared_cdl_preferred_full_composition_path()
 _CODE_PATHS = [
@@ -149,7 +146,7 @@ def _farm_map_b64(fields: gpd.GeoDataFrame) -> str:
     centroids_projected = fields.to_crs(centroid_crs).geometry.centroid
 
     def _overlay_geoadmin(target_ax, use_webmercator: bool) -> None:
-        geoadmin_root = _REPO / "data" / "my-farm-advisor" / "shared" / "geoadmin"
+        geoadmin_root = shared_geoadmin_dir()
         states_path = geoadmin_root / "l1_states" / "states_usa.geojson"
         counties_path = geoadmin_root / "l2_counties" / "counties_usa.geojson"
         if not states_path.exists() or not counties_path.exists():
@@ -330,17 +327,7 @@ def _field_slug_lookup(inventory_path: Path = _FIELD_INVENTORY) -> dict[str, str
 def _canonical_field_root(field_slug: str | None) -> Path | None:
     if not field_slug:
         return None
-    return (
-        _REPO
-        / "data"
-        / "my-farm-advisor"
-        / "growers"
-        / _DEFAULT_GROWER
-        / "farms"
-        / _DEFAULT_FARM
-        / "fields"
-        / field_slug
-    )
+    return field_dir(_DEFAULT_GROWER, _DEFAULT_FARM, field_slug)
 
 
 def _load_ndvi_cards(field_slug: str | None) -> dict[str, str]:

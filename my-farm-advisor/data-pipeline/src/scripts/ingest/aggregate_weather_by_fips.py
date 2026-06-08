@@ -402,6 +402,37 @@ def _build_zarr_county_weather(
         time_standard=time_standard,
     )
     if not syn1deg_weather.empty:
+        if syn1deg_weather["ALLSKY_SFC_SW_DWN"].isna().any():
+            alternate_time_standard = "utc" if time_standard == "lst" else "lst"
+            alternate_solar = _query_zarr_grid_weather(
+                grid_lookup,
+                year=year,
+                collection="syn1deg",
+                parameters=_SYN1DEG_COLUMNS,
+                time_standard=alternate_time_standard,
+            )
+            if not alternate_solar.empty:
+                alternate_solar = cast(
+                    pd.DataFrame,
+                    alternate_solar.rename(
+                        columns={"ALLSKY_SFC_SW_DWN": "_ALLSKY_SFC_SW_DWN_FALLBACK"}
+                    ),
+                )
+                syn1deg_weather = cast(
+                    pd.DataFrame,
+                    syn1deg_weather.merge(
+                        alternate_solar[["date", "grid_key", "_ALLSKY_SFC_SW_DWN_FALLBACK"]],
+                        on=["date", "grid_key"],
+                        how="left",
+                    ),
+                )
+                syn1deg_weather["ALLSKY_SFC_SW_DWN"] = syn1deg_weather[
+                    "ALLSKY_SFC_SW_DWN"
+                ].fillna(syn1deg_weather["_ALLSKY_SFC_SW_DWN_FALLBACK"])
+                syn1deg_weather = cast(
+                    pd.DataFrame,
+                    syn1deg_weather.drop(columns=["_ALLSKY_SFC_SW_DWN_FALLBACK"]),
+                )
         # The REST API returns daily shortwave radiation in MJ/m^2/day. The Zarr
         # source stores the same variable in W m-2, so convert for compatibility.
         solar_wm2 = cast(

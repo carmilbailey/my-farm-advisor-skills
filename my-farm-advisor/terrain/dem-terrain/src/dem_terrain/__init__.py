@@ -45,6 +45,18 @@ from .source_resolver import (
     select_best_candidate,
 )
 
+from .usgs_tnm import (
+    DEFAULT_TNM_PRODUCTS_ENDPOINT,
+    TNM_DATASETS,
+    USGSTNMDownloadRecord,
+    USGSTNMProduct,
+    build_tnm_products_url,
+    buffer_wgs84_bbox,
+    download_with_retries,
+    parse_tnm_products,
+    sha256_file,
+)
+
 from .terrain_contract import (
     ALL_PRODUCT_FILENAMES,
     CLIPPED_DEM_FILENAME,
@@ -101,6 +113,7 @@ __all__ = [
     "DERIVED_RASTER_PRODUCT_NAMES",
     "DERIVED_TERRAIN_DIR_TEMPLATE",
     "DSM_FALLBACK_WARNING",
+    "DEFAULT_TNM_PRODUCTS_ENDPOINT",
     "FIELD_DEM_ROOT_TEMPLATE",
     "IllinoisILHMPAdapter",
     "MANIFEST_ASSET_SCHEMA_FIELDS",
@@ -138,6 +151,7 @@ __all__ = [
     "TERRAIN_CONTRACT_VERSION",
     "TERRAIN_TABLES_DIR_TEMPLATE",
     "TERRAIN_MANIFEST_TEMPLATE",
+    "TNM_DATASETS",
     "CopernicusGLO30Adapter",
     "ManifestField",
     "OutputAssetSchemaField",
@@ -152,9 +166,16 @@ __all__ = [
     "SourceSelection",
     "SummaryDefinition",
     "USGSTNMAdapter",
+    "USGSTNMDownloadRecord",
+    "USGSTNMProduct",
     "build_output_product_index",
+    "build_tnm_products_url",
+    "buffer_wgs84_bbox",
     "candidate_provenance",
+    "download_with_retries",
     "instantiate_default_adapters",
+    "parse_tnm_products",
     "rank_candidates",
     "select_best_candidate",
+    "sha256_file",
 ]

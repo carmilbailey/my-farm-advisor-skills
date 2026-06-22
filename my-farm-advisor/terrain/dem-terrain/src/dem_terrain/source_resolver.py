@@ -80,6 +80,8 @@ class SourceCandidate:
     estimated_download_size_mb: float | None = None
     warnings: tuple[str, ...] = ()
     fallback_reason: str | None = None
+    source_id: str | None = None
+    bbox_wgs84: tuple[float, float, float, float] | None = None
 
     def provenance(self) -> "SourceProvenance":
         """Return the source-reference subset expected in downstream manifests."""
@@ -238,11 +240,7 @@ class SourceAdapter:
         return candidate.provenance()
 
 
-class USGSTNMAdapter(SourceAdapter):
-    """Placeholder for USGS TNM 3DEP 1m/10m/30m source discovery."""
-
-    adapter_id = ADAPTER_USGS_TNM
-    adapter_name = "USGS TNM 3DEP"
+from .usgs_tnm import USGSTNMAdapter
 
 
 class IllinoisILHMPAdapter(SourceAdapter):

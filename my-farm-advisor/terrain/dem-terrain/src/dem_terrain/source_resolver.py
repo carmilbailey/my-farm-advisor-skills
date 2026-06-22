@@ -82,6 +82,7 @@ class SourceCandidate:
     fallback_reason: str | None = None
     source_id: str | None = None
     bbox_wgs84: tuple[float, float, float, float] | None = None
+    access_note: str = ""
 
     def provenance(self) -> "SourceProvenance":
         """Return the source-reference subset expected in downstream manifests."""
@@ -241,13 +242,7 @@ class SourceAdapter:
 
 
 from .usgs_tnm import USGSTNMAdapter
-
-
-class IllinoisILHMPAdapter(SourceAdapter):
-    """Placeholder for Illinois ILHMP/ISGS source discovery."""
-
-    adapter_id = ADAPTER_ILLINOIS_ILHMP
-    adapter_name = "Illinois ILHMP/ISGS"
+from .illinois_ilhmp import IllinoisILHMPAdapter
 
 
 class RegisteredRegionalAdapter(SourceAdapter):

@@ -1,6 +1,6 @@
 # DEM Terrain Provenance
 
-This file records the source hierarchy and policy decisions for the My Farm Advisor DEM terrain package. It is a documentation and contract record only. Provider adapters, downloads, raster processing, and runtime manifests are later tasks.
+This file records the source hierarchy and policy decisions for the My Farm Advisor DEM terrain package. It is a documentation and contract record only. Provider downloads, raster processing, and runtime manifests remain runtime-only work owned by later tasks.
 
 ## Source Hierarchy
 
@@ -14,9 +14,11 @@ This file records the source hierarchy and policy decisions for the My Farm Advi
 ### Illinois Height Modernization Program and ISGS
 
 - Role: Illinois-specific high-quality source candidate.
-- Policy: include Illinois ILHMP/ISGS when the AOI intersects Illinois and the candidate is equal or better by resolution, recency, and surface type.
-- Rationale: Illinois farm fields can have state or program products that match or improve on generic national coverage.
-- Caveat: programmatic access can vary by dataset and service. Adapters must preserve URLs, citation text, license notes, acquisition dates, and any coverage limits.
+- Official sources: Illinois State Geological Survey height modernization program page, `https://isgs.illinois.edu/research/height-modernization/`; Illinois Geospatial Data Clearinghouse ILHMP data page, `https://clearinghouse.isgs.illinois.edu/data/elevation/illinois-height-modernization-ilhmp`; clearinghouse terms page, `https://clearinghouse.isgs.illinois.edu/webdocs/license.html`.
+- Policy: include Illinois ILHMP/ISGS when the AOI intersects Illinois and the candidate is equal or better by resolution, recency, and surface type. If no safe direct GeoTIFF, ImageServer export, or tile reference is maintained, return a controlled provider-reference candidate with `fallback_reason='available_but_manual_or_service_limited'` rather than pretending a default runtime download is available.
+- Rationale: Illinois farm fields can have state or program products that match or improve on generic national coverage. ISGS describes high-resolution lidar elevation data for Illinois counties and routes access through the Illinois Geospatial Clearinghouse.
+- Default download behavior: full county-level archive candidates are blocked unless an explicit adapter opt-in such as `allow_large_downloads=True` is supplied and runtime cache paths outside this repository are used. The default size guard records `fallback_reason='large_download_blocked_by_default_policy'` for bulky county archive references.
+- Caveat: programmatic access can vary by dataset and service. Adapters must preserve URLs, citation text, license notes, acquisition dates, access notes, size guard status, and any coverage limits. DeKalb/northern Illinois bbox context is a conservative metadata aid for discovery smoke tests, not a replacement for authoritative county boundary geometry.
 
 ### NASADEM
 
